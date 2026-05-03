@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "745290189834",
+    "project_id": "fundilink-5b99e",
+    "storage_bucket": "fundilink-5b99e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:745290189834:android:4c3190a9d981cb044663f3",
+        "android_client_info": {
+          "package_name": "com.okeyo.fundilink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYRz5B4gUAEMcdtfEfXVfAY5aUWizTZig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
