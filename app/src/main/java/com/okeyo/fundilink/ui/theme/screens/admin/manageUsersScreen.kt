@@ -94,7 +94,6 @@ fun ManageUsersScreen(navController: NavHostController) {
             })
     }
 
-    // Delete Dialog
     if (showDeleteDialog && userToDelete != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -183,7 +182,7 @@ fun ManageUsersScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // Search Bar
+
             item {
                 OutlinedTextField(
                     value = searchQuery,
@@ -219,7 +218,7 @@ fun ManageUsersScreen(navController: NavHostController) {
                 )
             }
 
-            // Users List
+
             items(filteredUsers) { user ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -237,7 +236,7 @@ fun ManageUsersScreen(navController: NavHostController) {
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.weight(1f)
                         ) {
-                            // Avatar
+
                             Box(
                                 modifier = Modifier
                                     .size(44.dp)
@@ -297,7 +296,7 @@ fun ManageUsersScreen(navController: NavHostController) {
                             }
                         }
 
-                        // Delete Button
+
                         IconButton(onClick = {
                             userToDelete = user
                             showDeleteDialog = true

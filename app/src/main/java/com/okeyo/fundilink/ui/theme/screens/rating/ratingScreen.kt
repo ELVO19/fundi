@@ -117,7 +117,7 @@ fun RateFundiScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Star Rating
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 (1..5).forEach { star ->
                     Icon(
@@ -146,7 +146,7 @@ fun RateFundiScreen(
                 color = if (rating > 0) Gold else GrayText
             )
 
-            // Comment
+
             OutlinedTextField(
                 value = comment,
                 onValueChange = { comment = it },

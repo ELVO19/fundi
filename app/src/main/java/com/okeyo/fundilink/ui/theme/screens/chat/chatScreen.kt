@@ -71,7 +71,7 @@ fun ChatScreen(
     val listState = rememberLazyListState()
 
     val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-    val chatId = if (uid < receiverId) "${uid}_${receiverId}" else "${receiverId}_${uid}"
+    val chatId = listOf(uid, receiverId).sorted().joinToString("_")
     val chatRef = FirebaseDatabase.getInstance().getReference("chats").child(chatId)
 
     LaunchedEffect(Unit) {
@@ -131,7 +131,7 @@ fun ChatScreen(
                 .padding(paddingValues)
         ) {
 
-            // Messages
+
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -183,7 +183,7 @@ fun ChatScreen(
                 item { Spacer(modifier = Modifier.height(8.dp)) }
             }
 
-            // Message Input
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

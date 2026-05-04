@@ -1,5 +1,6 @@
 package com.okeyo.fundilink.screens.jobs
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,12 +35,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -62,8 +65,11 @@ import com.okeyo.fundilink.ui.theme.White
 @Composable
 fun JobsScreen(navController: NavHostController) {
 
+    val context = LocalContext.current
     var allJobs by remember { mutableStateOf<List<JobModel>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
+    var currentUserRole by remember { mutableStateOf("") }
+    val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     val filteredJobs = allJobs.filter {
         it.title.contains(searchQuery, ignoreCase = true) ||
@@ -71,6 +77,14 @@ fun JobsScreen(navController: NavHostController) {
     }
 
     LaunchedEffect(Unit) {
+        // Get user role
+        FirebaseDatabase.getInstance().getReference("users")
+            .child(uid).child("role").get()
+            .addOnSuccessListener { snapshot ->
+                currentUserRole = snapshot.value?.toString() ?: ""
+            }
+
+        // Fetch all jobs
         FirebaseDatabase.getInstance().getReference("jobs")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -113,7 +127,7 @@ fun JobsScreen(navController: NavHostController) {
 
             item {
                 Text(
-                    text = "Available Jobs",
+                    text = if (currentUserRole == "client") "All Jobs" else "Available Jobs",
                     fontFamily = Poppins,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
@@ -183,8 +197,11 @@ fun JobsScreen(navController: NavHostController) {
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(
-                                            if (job.status == "open") GreenSuccess.copy(alpha = 0.2f)
-                                            else RedError.copy(alpha = 0.2f)
+                                            when (job.status) {
+                                                "open" -> GreenSuccess.copy(alpha = 0.2f)
+                                                "completed" -> Gold.copy(alpha = 0.2f)
+                                                else -> RedError.copy(alpha = 0.2f)
+                                            }
                                         )
                                         .padding(horizontal = 10.dp, vertical = 4.dp)
                                 ) {
@@ -192,13 +209,36 @@ fun JobsScreen(navController: NavHostController) {
                                         text = job.status.replaceFirstChar { it.uppercase() },
                                         fontFamily = Poppins,
                                         fontSize = 11.sp,
-                                        color = if (job.status == "open") GreenSuccess else RedError,
+                                        color = when (job.status) {
+                                            "open" -> GreenSuccess
+                                            "completed" -> Gold
+                                            else -> RedError
+                                        },
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
 
                             Spacer(modifier = Modifier.height(6.dp))
+
+                            // Category Badge
+                            if (job.category.isNotEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .background(Orange.copy(alpha = 0.15f))
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = job.category,
+                                        fontFamily = Poppins,
+                                        fontSize = 10.sp,
+                                        color = Orange,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                            }
 
                             // Description
                             Text(
@@ -242,53 +282,96 @@ fun JobsScreen(navController: NavHostController) {
 
                             Spacer(modifier = Modifier.height(10.dp))
 
-                            // Action Buttons
+                            // Action Buttons — role based
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                // Place Bid Button
+                                // Fundi sees Place Bid
+                                if (currentUserRole == "fundi") {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(Orange.copy(alpha = 0.15f))
+                                            .padding(vertical = 10.dp)
+                                            .clickable {
+                                                navController.navigate(
+                                                    ROUTE_PLACE_BID.replace("{jobId}", job.id)
+                                                )
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Place Bid →",
+                                            fontFamily = Poppins,
+                                            fontSize = 12.sp,
+                                            color = Orange,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+
+                                // Client sees View Bids
+                                if (currentUserRole == "client") {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(GreenSuccess.copy(alpha = 0.15f))
+                                            .padding(vertical = 10.dp)
+                                            .clickable {
+                                                navController.navigate(
+                                                    ROUTE_JOB_BIDS.replace("{jobId}", job.id)
+                                                )
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "View Bids →",
+                                            fontFamily = Poppins,
+                                            fontSize = 12.sp,
+                                            color = GreenSuccess,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+
+                                // Share button for everyone
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(Orange.copy(alpha = 0.15f))
+                                        .background(Orange.copy(alpha = 0.1f))
                                         .padding(vertical = 10.dp)
                                         .clickable {
-                                            navController.navigate(
-                                                ROUTE_PLACE_BID.replace("{jobId}", job.id)
+                                            val shareText = """
+                                                🔧 Job Available on FundiLink!
+                                                
+                                                📌 ${job.title}
+                                                📍 ${job.location}
+                                                💰 Ksh ${job.budget}
+                                                🏷️ ${job.category}
+                                                
+                                                📝 ${job.description}
+                                                
+                                                Download FundiLink to bid on this job!
+                                            """.trimIndent()
+                                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                                type = "text/plain"
+                                                putExtra(Intent.EXTRA_TEXT, shareText)
+                                            }
+                                            context.startActivity(
+                                                Intent.createChooser(intent, "Share Job via")
                                             )
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "Place Bid →",
+                                        text = "📤 Share",
                                         fontFamily = Poppins,
                                         fontSize = 12.sp,
                                         color = Orange,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
-
-                                // View Bids Button
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(GreenSuccess.copy(alpha = 0.15f))
-                                        .padding(vertical = 10.dp)
-                                        .clickable {
-                                            navController.navigate(
-                                                ROUTE_JOB_BIDS.replace("{jobId}", job.id)
-                                            )
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "View Bids →",
-                                        fontFamily = Poppins,
-                                        fontSize = 12.sp,
-                                        color = GreenSuccess,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }

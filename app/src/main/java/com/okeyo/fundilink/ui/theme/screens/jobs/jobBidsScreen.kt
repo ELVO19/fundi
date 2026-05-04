@@ -79,7 +79,7 @@ fun JobBidsScreen(
     val jobsRef = FirebaseDatabase.getInstance().getReference("jobs")
 
     LaunchedEffect(jobId) {
-        // Fetch bids for this job
+
         bidsRef.orderByChild("jobId").equalTo(jobId)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -90,7 +90,7 @@ fun JobBidsScreen(
                     }
                     bids = bidList
 
-                    // Fetch fundi details for each bid
+
                     bidList.forEach { bid ->
                         FirebaseDatabase.getInstance().getReference("users")
                             .child(bid.fundiId)
@@ -284,14 +284,14 @@ fun JobBidsScreen(
                                 )
                             }
 
-                            // Accept/Reject buttons — only show if pending
+
                             if (bid.status == "pending") {
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    // Reject Button
+
                                     OutlinedButton(
                                         onClick = {
                                             bidsRef.child(bid.id)
@@ -310,20 +310,19 @@ fun JobBidsScreen(
                                         )
                                     }
 
-                                    // Accept Button
                                     Button(
                                         onClick = {
-                                            // Accept this bid
+
                                             bidsRef.child(bid.id)
                                                 .child("status")
                                                 .setValue("accepted")
 
-                                            // Close the job
+
                                             jobsRef.child(jobId)
                                                 .child("status")
                                                 .setValue("closed")
 
-                                            // Reject all other bids
+
                                             bids.filter { it.id != bid.id }.forEach { otherBid ->
                                                 bidsRef.child(otherBid.id)
                                                     .child("status")
@@ -351,7 +350,7 @@ fun JobBidsScreen(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                                         ) {
-                                            // Rate Button
+
                                             Box(
                                                 modifier = Modifier
                                                     .weight(1f)
@@ -376,7 +375,7 @@ fun JobBidsScreen(
                                                 )
                                             }
 
-                                            // Chat Button
+
                                             Box(
                                                 modifier = Modifier
                                                     .weight(1f)

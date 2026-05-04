@@ -8,6 +8,6 @@ data class JobModel(
     val location: String = "",
     val budget: String = "",
     val category: String = "",
-    val status: String = "open",  // "open", "closed"
+    val status: String = "open",
     val createdAt: String = ""
 )

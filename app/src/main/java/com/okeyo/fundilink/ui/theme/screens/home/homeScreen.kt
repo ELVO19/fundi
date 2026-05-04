@@ -57,7 +57,11 @@ import com.okeyo.fundilink.data.AuthViewModel
 import com.okeyo.fundilink.models.BidModel
 import com.okeyo.fundilink.models.JobModel
 import com.okeyo.fundilink.models.UserModel
-import com.okeyo.fundilink.navigation.Routes
+import com.okeyo.fundilink.navigation.ROUTE_ALERTS
+import com.okeyo.fundilink.navigation.ROUTE_JOB_BIDS
+import com.okeyo.fundilink.navigation.ROUTE_JOBS
+import com.okeyo.fundilink.navigation.ROUTE_POST_JOB
+import com.okeyo.fundilink.navigation.ROUTE_SEARCH_FUNDIS
 import com.okeyo.fundilink.ui.theme.DarkBackground
 import com.okeyo.fundilink.ui.theme.DarkCard
 import com.okeyo.fundilink.ui.theme.DarkSurface
@@ -68,8 +72,6 @@ import com.okeyo.fundilink.ui.theme.Orange
 import com.okeyo.fundilink.ui.theme.Poppins
 import com.okeyo.fundilink.ui.theme.RedError
 import com.okeyo.fundilink.ui.theme.White
-import com.okeyo.fundilink.navigation.ROUTE_SEARCH_FUNDIS
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +83,8 @@ fun HomeScreen(
     var currentUser by remember { mutableStateOf<UserModel?>(null) }
     var recentJobs by remember { mutableStateOf<List<JobModel>>(emptyList()) }
     var myBids by remember { mutableStateOf<List<BidModel>>(emptyList()) }
-    var totalUsers by remember { mutableStateOf(0) }
+    var myPostedJobs by remember { mutableStateOf<List<JobModel>>(emptyList()) }
+    var totalEarnings by remember { mutableStateOf(0) }
     val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     LaunchedEffect(Unit) {
@@ -90,6 +93,7 @@ fun HomeScreen(
             onError = {}
         )
 
+        // Fetch all jobs
         FirebaseDatabase.getInstance().getReference("jobs")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -99,28 +103,29 @@ fun HomeScreen(
                         if (job != null) jobs.add(job)
                     }
                     recentJobs = jobs.takeLast(5).reversed()
+                    myPostedJobs = jobs.filter { it.clientId == uid }
                 }
                 override fun onCancelled(error: DatabaseError) {}
             })
 
+        // Fetch fundi bids & earnings
         FirebaseDatabase.getInstance().getReference("bids")
             .orderByChild("fundiId").equalTo(uid)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val bids = mutableListOf<BidModel>()
+                    var earnings = 0
                     snapshot.children.forEach {
                         val bid = it.getValue(BidModel::class.java)
-                        if (bid != null) bids.add(bid)
+                        if (bid != null) {
+                            bids.add(bid)
+                            if (bid.status == "accepted") {
+                                earnings += bid.amount.toIntOrNull() ?: 0
+                            }
+                        }
                     }
                     myBids = bids
-                }
-                override fun onCancelled(error: DatabaseError) {}
-            })
-
-        FirebaseDatabase.getInstance().getReference("users")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    totalUsers = snapshot.childrenCount.toInt()
+                    totalEarnings = earnings
                 }
                 override fun onCancelled(error: DatabaseError) {}
             })
@@ -148,9 +153,7 @@ fun HomeScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkSurface
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
             )
         }
     ) { paddingValues ->
@@ -163,7 +166,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-
+            // Welcome Card
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -189,9 +192,7 @@ fun HomeScreen(
                                 color = White
                             )
                         }
-
                         Spacer(modifier = Modifier.width(12.dp))
-
                         Column {
                             Text(
                                 text = "Hello, ${currentUser?.name?.split(" ")?.first() ?: "there"} 👋",
@@ -226,382 +227,413 @@ fun HomeScreen(
                 }
             }
 
-            // Stats Row
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Jobs stat
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkCard)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Work,
-                                contentDescription = null,
-                                tint = Orange,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = recentJobs.size.toString(),
-                                fontFamily = Poppins,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
-                                color = Orange
-                            )
-                            Text(
-                                text = "Total Jobs",
-                                fontFamily = Poppins,
-                                fontSize = 11.sp,
-                                color = GrayText
-                            )
-                        }
-                    }
+            // ============ CLIENT SECTION ============
+            if (currentUser?.role == "client") {
 
-                    // Bids stat
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkCard)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Gold,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = myBids.size.toString(),
-                                fontFamily = Poppins,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
-                                color = Gold
-                            )
-                            Text(
-                                text = "My Bids",
-                                fontFamily = Poppins,
-                                fontSize = 11.sp,
-                                color = GrayText
-                            )
-                        }
-                    }
-
-                    // Search Fundis
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkCard),
-                        onClick = { navController.navigate(ROUTE_SEARCH_FUNDIS) }
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(Orange.copy(alpha = 0.15f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = Orange,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Find Fundi",
-                                fontFamily = Poppins,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 13.sp,
-                                color = White
-                            )
-                            Text(
-                                text = "Search fundis",
-                                fontFamily = Poppins,
-                                fontSize = 10.sp,
-                                color = GrayText
-                            )
-                        }
-                    }
-
-                    // Users stat
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkCard)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = null,
-                                tint = GreenSuccess,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = totalUsers.toString(),
-                                fontFamily = Poppins,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
-                                color = GreenSuccess
-                            )
-                            Text(
-                                text = "Users",
-                                fontFamily = Poppins,
-                                fontSize = 11.sp,
-                                color = GrayText
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Quick Actions
-            item {
-                Text(
-                    text = "Quick Actions",
-                    fontFamily = Poppins,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = White
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Post Job
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkCard),
-                        onClick = { navController.navigate(Routes.POST_JOB) }
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(Orange.copy(alpha = 0.15f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = null,
-                                    tint = Orange,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Post Job",
-                                fontFamily = Poppins,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 13.sp,
-                                color = White
-                            )
-                            Text(
-                                text = "Hire a fundi",
-                                fontFamily = Poppins,
-                                fontSize = 10.sp,
-                                color = GrayText
-                            )
-                        }
-                    }
-
-                    // Browse Jobs
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkCard),
-                        onClick = { navController.navigate(Routes.JOBS) }
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(Gold.copy(alpha = 0.15f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = null,
-                                    tint = Gold,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Browse Jobs",
-                                fontFamily = Poppins,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 13.sp,
-                                color = White
-                            )
-                            Text(
-                                text = "Find work",
-                                fontFamily = Poppins,
-                                fontSize = 10.sp,
-                                color = GrayText
-                            )
-                        }
-                    }
-
-                    // My Bids
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkCard),
-                        onClick = { navController.navigate(Routes.ALERTS) }
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(GreenSuccess.copy(alpha = 0.15f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = GreenSuccess,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "My Bids",
-                                fontFamily = Poppins,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 13.sp,
-                                color = White
-                            )
-                            Text(
-                                text = "Track bids",
-                                fontFamily = Poppins,
-                                fontSize = 10.sp,
-                                color = GrayText
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Recent Jobs Title
-            item {
-                Text(
-                    text = "Recent Jobs",
-                    fontFamily = Poppins,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = White
-                )
-            }
-
-            // Recent Jobs List
-            if (recentJobs.isEmpty()) {
+                // Client Stats
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = "No jobs posted yet 🔧",
-                            fontFamily = Poppins,
-                            color = GrayText,
-                            fontSize = 14.sp
-                        )
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(Icons.Default.Work, contentDescription = null, tint = Orange, modifier = Modifier.size(28.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = myPostedJobs.size.toString(), fontFamily = Poppins, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Orange)
+                                Text(text = "My Jobs", fontFamily = Poppins, fontSize = 11.sp, color = GrayText)
+                            }
+                        }
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(Icons.Default.Star, contentDescription = null, tint = GreenSuccess, modifier = Modifier.size(28.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = myPostedJobs.count { it.status == "open" }.toString(), fontFamily = Poppins, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = GreenSuccess)
+                                Text(text = "Open Jobs", fontFamily = Poppins, fontSize = 11.sp, color = GrayText)
+                            }
+                        }
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(Icons.Default.Star, contentDescription = null, tint = Gold, modifier = Modifier.size(28.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = myPostedJobs.count { it.status == "completed" }.toString(), fontFamily = Poppins, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Gold)
+                                Text(text = "Completed", fontFamily = Poppins, fontSize = 11.sp, color = GrayText)
+                            }
+                        }
                     }
                 }
-            } else {
-                items(recentJobs) { job ->
-                    Card(
+
+                // Client Quick Actions
+                item {
+                    Text(text = "Quick Actions", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = White)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkCard)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                        // Post Job
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard),
+                            onClick = { navController.navigate(ROUTE_POST_JOB) }
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text(
-                                    text = job.title,
-                                    fontFamily = Poppins,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp,
-                                    color = White,
-                                    modifier = Modifier.weight(1f)
-                                )
                                 Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(
-                                            if (job.status == "open") GreenSuccess.copy(alpha = 0.2f)
-                                            else RedError.copy(alpha = 0.2f)
-                                        )
-                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                    modifier = Modifier.size(48.dp).clip(CircleShape).background(Orange.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = job.status.replaceFirstChar { it.uppercase() },
-                                        fontFamily = Poppins,
-                                        fontSize = 10.sp,
-                                        color = if (job.status == "open") GreenSuccess else RedError,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
+                                    Icon(Icons.Default.Add, contentDescription = null, tint = Orange, modifier = Modifier.size(24.dp))
                                 }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "Post Job", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = White)
+                                Text(text = "Hire a fundi", fontFamily = Poppins, fontSize = 10.sp, color = GrayText)
                             }
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                        }
+
+                        // Find Fundi
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard),
+                            onClick = { navController.navigate(ROUTE_SEARCH_FUNDIS) }
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text(
-                                    text = "📍 ${job.location}",
-                                    fontFamily = Poppins,
-                                    fontSize = 11.sp,
-                                    color = GrayText
-                                )
-                                Text(
-                                    text = "💰 Ksh ${job.budget}",
-                                    fontFamily = Poppins,
-                                    fontSize = 11.sp,
-                                    color = Gold,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                Box(
+                                    modifier = Modifier.size(48.dp).clip(CircleShape).background(Gold.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Person, contentDescription = null, tint = Gold, modifier = Modifier.size(24.dp))
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "Find Fundi", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = White)
+                                Text(text = "Browse fundis", fontFamily = Poppins, fontSize = 10.sp, color = GrayText)
+                            }
+                        }
+
+                        // My Jobs
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard),
+                            onClick = { navController.navigate(ROUTE_JOBS) }
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(48.dp).clip(CircleShape).background(GreenSuccess.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Work, contentDescription = null, tint = GreenSuccess, modifier = Modifier.size(24.dp))
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "My Jobs", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = White)
+                                Text(text = "View & manage", fontFamily = Poppins, fontSize = 10.sp, color = GrayText)
+                            }
+                        }
+                    }
+                }
+
+                // Client Recent Jobs
+                item {
+                    Text(text = "My Recent Jobs", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = White)
+                }
+
+                if (myPostedJobs.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(150.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(text = "🔧", fontSize = 48.sp)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "No jobs posted yet", fontFamily = Poppins, color = GrayText, fontSize = 14.sp)
+                            }
+                        }
+                    }
+                } else {
+                    items(myPostedJobs.take(3)) { job ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard),
+                            onClick = {
+                                navController.navigate(ROUTE_JOB_BIDS.replace("{jobId}", job.id))
+                            }
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(text = job.title, fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = White, modifier = Modifier.weight(1f))
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(
+                                                when (job.status) {
+                                                    "open" -> GreenSuccess.copy(alpha = 0.2f)
+                                                    "completed" -> Gold.copy(alpha = 0.2f)
+                                                    else -> RedError.copy(alpha = 0.2f)
+                                                }
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                                    ) {
+                                        Text(
+                                            text = job.status.replaceFirstChar { it.uppercase() },
+                                            fontFamily = Poppins,
+                                            fontSize = 10.sp,
+                                            color = when (job.status) {
+                                                "open" -> GreenSuccess
+                                                "completed" -> Gold
+                                                else -> RedError
+                                            },
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text(text = "📍 ${job.location}", fontFamily = Poppins, fontSize = 11.sp, color = GrayText)
+                                    Text(text = "💰 Ksh ${job.budget}", fontFamily = Poppins, fontSize = 11.sp, color = Gold, fontWeight = FontWeight.SemiBold)
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(text = "👆 Tap to view bids", fontFamily = Poppins, fontSize = 10.sp, color = Orange)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ============ FUNDI SECTION ============
+            if (currentUser?.role == "fundi") {
+
+                // Fundi Stats
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(Icons.Default.Work, contentDescription = null, tint = Orange, modifier = Modifier.size(28.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = myBids.size.toString(), fontFamily = Poppins, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Orange)
+                                Text(text = "My Bids", fontFamily = Poppins, fontSize = 11.sp, color = GrayText)
+                            }
+                        }
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(Icons.Default.Star, contentDescription = null, tint = GreenSuccess, modifier = Modifier.size(28.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = myBids.count { it.status == "accepted" }.toString(), fontFamily = Poppins, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = GreenSuccess)
+                                Text(text = "Accepted", fontFamily = Poppins, fontSize = 11.sp, color = GrayText)
+                            }
+                        }
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(text = "💰", fontSize = 24.sp)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = "Ksh $totalEarnings", fontFamily = Poppins, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Gold)
+                                Text(text = "Earnings", fontFamily = Poppins, fontSize = 11.sp, color = GrayText)
+                            }
+                        }
+                    }
+                }
+
+                // Fundi Quick Actions
+                item {
+                    Text(text = "Quick Actions", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = White)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Browse Jobs
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard),
+                            onClick = { navController.navigate(ROUTE_JOBS) }
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(48.dp).clip(CircleShape).background(Orange.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Search, contentDescription = null, tint = Orange, modifier = Modifier.size(24.dp))
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "Browse Jobs", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = White)
+                                Text(text = "Find work", fontFamily = Poppins, fontSize = 10.sp, color = GrayText)
+                            }
+                        }
+
+                        // My Bids
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard),
+                            onClick = { navController.navigate(ROUTE_ALERTS) }
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(48.dp).clip(CircleShape).background(Gold.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Star, contentDescription = null, tint = Gold, modifier = Modifier.size(24.dp))
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "My Bids", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = White)
+                                Text(text = "Track status", fontFamily = Poppins, fontSize = 10.sp, color = GrayText)
+                            }
+                        }
+
+                        // Earnings
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard),
+                            onClick = { navController.navigate(ROUTE_ALERTS) }
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(48.dp).clip(CircleShape).background(GreenSuccess.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(text = "💰", fontSize = 20.sp)
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "Earnings", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = White)
+                                Text(text = "Ksh $totalEarnings", fontFamily = Poppins, fontSize = 10.sp, color = GreenSuccess)
+                            }
+                        }
+                    }
+                }
+
+                // Fundi Recent Bids
+                item {
+                    Text(text = "My Recent Bids", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = White)
+                }
+
+                if (myBids.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(150.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(text = "🔍", fontSize = 48.sp)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "No bids placed yet", fontFamily = Poppins, color = GrayText, fontSize = 14.sp)
+                                Text(text = "Browse jobs and place a bid!", fontFamily = Poppins, color = GrayText, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                } else {
+                    items(myBids.take(3)) { bid ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = DarkCard)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(text = "Job #${bid.jobId.take(8)}", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = White)
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(
+                                                when (bid.status) {
+                                                    "accepted" -> GreenSuccess.copy(alpha = 0.2f)
+                                                    "rejected" -> RedError.copy(alpha = 0.2f)
+                                                    else -> Gold.copy(alpha = 0.2f)
+                                                }
+                                            )
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = bid.status.replaceFirstChar { it.uppercase() },
+                                            fontFamily = Poppins,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = when (bid.status) {
+                                                "accepted" -> GreenSuccess
+                                                "rejected" -> RedError
+                                                else -> Gold
+                                            }
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(text = "💬 ${bid.message}", fontFamily = Poppins, fontSize = 12.sp, color = GrayText, maxLines = 1)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = "💰 Ksh ${bid.amount}", fontFamily = Poppins, fontSize = 12.sp, color = Gold, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }

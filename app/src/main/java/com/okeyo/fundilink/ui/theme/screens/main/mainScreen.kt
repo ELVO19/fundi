@@ -13,7 +13,10 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,7 +26,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.okeyo.fundilink.navigation.Routes
+import com.okeyo.fundilink.navigation.ROUTE_ALERTS
+import com.okeyo.fundilink.navigation.ROUTE_HOME
+import com.okeyo.fundilink.navigation.ROUTE_JOBS
+import com.okeyo.fundilink.navigation.ROUTE_PROFILE
 import com.okeyo.fundilink.screens.alerts.AlertsScreen
 import com.okeyo.fundilink.screens.home.HomeScreen
 import com.okeyo.fundilink.screens.jobs.JobsScreen
@@ -34,9 +40,11 @@ import com.okeyo.fundilink.ui.theme.GrayText
 import com.okeyo.fundilink.ui.theme.Orange
 import com.okeyo.fundilink.ui.theme.Poppins
 
-
 @Composable
-fun MainScreen(navController: NavHostController) {
+fun MainScreen(
+    navController: NavHostController,
+    isDarkTheme: MutableState<Boolean> = mutableStateOf(true)
+) {
 
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
@@ -45,23 +53,17 @@ fun MainScreen(navController: NavHostController) {
     Scaffold(
         containerColor = DarkBackground,
         bottomBar = {
-            NavigationBar(
-                containerColor = DarkSurface
-            ) {
+            NavigationBar(containerColor = DarkSurface) {
+
                 NavigationBarItem(
-                    selected = currentRoute == Routes.HOME,
+                    selected = currentRoute == ROUTE_HOME,
                     onClick = {
-                        bottomNavController.navigate(Routes.HOME) {
-                            popUpTo(Routes.HOME) { inclusive = false }
+                        bottomNavController.navigate(ROUTE_HOME) {
+                            popUpTo(ROUTE_HOME) { inclusive = false }
                             launchSingleTop = true
                         }
                     },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "Home"
-                        )
-                    },
+                    icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "Home") },
                     label = {
                         Text(
                             text = "Home",
@@ -80,19 +82,14 @@ fun MainScreen(navController: NavHostController) {
                 )
 
                 NavigationBarItem(
-                    selected = currentRoute == Routes.JOBS,
+                    selected = currentRoute == ROUTE_JOBS,
                     onClick = {
-                        bottomNavController.navigate(Routes.JOBS) {
-                            popUpTo(Routes.HOME) { inclusive = false }
+                        bottomNavController.navigate(ROUTE_JOBS) {
+                            popUpTo(ROUTE_HOME) { inclusive = false }
                             launchSingleTop = true
                         }
                     },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Work,
-                            contentDescription = "Jobs"
-                        )
-                    },
+                    icon = { Icon(imageVector = Icons.Default.Work, contentDescription = "Jobs") },
                     label = {
                         Text(
                             text = "Jobs",
@@ -111,19 +108,14 @@ fun MainScreen(navController: NavHostController) {
                 )
 
                 NavigationBarItem(
-                    selected = currentRoute == Routes.ALERTS,
+                    selected = currentRoute == ROUTE_ALERTS,
                     onClick = {
-                        bottomNavController.navigate(Routes.ALERTS) {
-                            popUpTo(Routes.HOME) { inclusive = false }
+                        bottomNavController.navigate(ROUTE_ALERTS) {
+                            popUpTo(ROUTE_HOME) { inclusive = false }
                             launchSingleTop = true
                         }
                     },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Alerts"
-                        )
-                    },
+                    icon = { Icon(imageVector = Icons.Default.Notifications, contentDescription = "Alerts") },
                     label = {
                         Text(
                             text = "Alerts",
@@ -142,19 +134,14 @@ fun MainScreen(navController: NavHostController) {
                 )
 
                 NavigationBarItem(
-                    selected = currentRoute == Routes.PROFILE,
+                    selected = currentRoute == ROUTE_PROFILE,
                     onClick = {
-                        bottomNavController.navigate(Routes.PROFILE) {
-                            popUpTo(Routes.HOME) { inclusive = false }
+                        bottomNavController.navigate(ROUTE_PROFILE) {
+                            popUpTo(ROUTE_HOME) { inclusive = false }
                             launchSingleTop = true
                         }
                     },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile"
-                        )
-                    },
+                    icon = { Icon(imageVector = Icons.Default.Person, contentDescription = "Profile") },
                     label = {
                         Text(
                             text = "Profile",
@@ -176,24 +163,28 @@ fun MainScreen(navController: NavHostController) {
     ) { paddingValues ->
         NavHost(
             navController = bottomNavController,
-            startDestination = Routes.HOME,
+            startDestination = ROUTE_HOME,
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable(Routes.HOME) {
+            composable(ROUTE_HOME) {
                 HomeScreen(navController = navController)
             }
-            composable(Routes.JOBS) {
+            composable(ROUTE_JOBS) {
                 JobsScreen(navController = navController)
             }
-            composable(Routes.ALERTS) {
+            composable(ROUTE_ALERTS) {
                 AlertsScreen(navController = navController)
             }
-            composable(Routes.PROFILE) {
-                ProfileScreen(navController = navController)
+            composable(ROUTE_PROFILE) {
+                ProfileScreen(
+                    navController = navController,
+
+                )
             }
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MainScreenPreview() {

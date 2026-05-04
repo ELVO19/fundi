@@ -156,7 +156,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Avatar with camera icon
+
             Box(contentAlignment = Alignment.BottomEnd) {
                 if (currentUser?.profileImage?.isNotEmpty() == true) {
                     AsyncImage(
@@ -187,7 +187,7 @@ fun ProfileScreen(
                     }
                 }
 
-                // Camera Icon
+
                 Box(
                     modifier = Modifier
                         .size(28.dp)
@@ -207,7 +207,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Upload status
+
             if (isUploadingPhoto) {
                 CircularProgressIndicator(color = Orange, modifier = Modifier.size(24.dp))
                 Text(
@@ -274,7 +274,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Info Card
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -318,7 +318,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Logout Button
+
             Button(
                 onClick = {
                     authViewModel.logout()

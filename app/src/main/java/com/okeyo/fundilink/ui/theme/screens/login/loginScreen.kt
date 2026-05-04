@@ -76,7 +76,7 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
-        // Logo
+
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "FundiLink Logo",

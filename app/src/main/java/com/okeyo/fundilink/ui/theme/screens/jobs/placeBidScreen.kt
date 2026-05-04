@@ -130,7 +130,7 @@ fun PlaceBidScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Job Details Card
+
             job?.let {
                 Box(
                     modifier = Modifier

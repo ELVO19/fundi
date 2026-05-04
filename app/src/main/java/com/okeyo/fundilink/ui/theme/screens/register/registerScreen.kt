@@ -92,7 +92,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Logo
+
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "FundiLink Logo",
@@ -122,7 +122,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Role Selector
+
         Text(
             text = "I am a:",
             fontFamily = Poppins,

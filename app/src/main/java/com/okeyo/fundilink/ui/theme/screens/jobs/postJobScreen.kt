@@ -136,7 +136,7 @@ fun PostJobScreen(navController: NavHostController) {
                 color = GrayText
             )
 
-            // Job Title
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -147,7 +147,7 @@ fun PostJobScreen(navController: NavHostController) {
                 singleLine = true
             )
 
-            // Category Selector
+
             Text(
                 text = "Category",
                 fontFamily = Poppins,
@@ -180,7 +180,7 @@ fun PostJobScreen(navController: NavHostController) {
                 }
             }
 
-            // Description
+
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -192,7 +192,7 @@ fun PostJobScreen(navController: NavHostController) {
                 shape = RoundedCornerShape(12.dp)
             )
 
-            // Location
+
             OutlinedTextField(
                 value = location,
                 onValueChange = { location = it },
@@ -203,7 +203,7 @@ fun PostJobScreen(navController: NavHostController) {
                 singleLine = true
             )
 
-            // Budget
+
             OutlinedTextField(
                 value = budget,
                 onValueChange = { budget = it },

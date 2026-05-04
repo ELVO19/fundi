@@ -10,7 +10,7 @@ class AuthViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val database = FirebaseDatabase.getInstance().getReference("users")
 
-    // ✅ Register
+
     fun register(
         name: String,
         email: String,
@@ -49,7 +49,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    // ✅ Login
+
     fun login(
         email: String,
         password: String,
@@ -64,7 +64,7 @@ class AuthViewModel : ViewModel() {
                     .addOnSuccessListener { snapshot ->
                         val role = snapshot.child("role").value?.toString() ?: "client"
 
-                        // Check if this is the admin email
+
                         if (email == "admin@fundilink.com") {
                             onSuccess("admin")
                         } else {
@@ -80,17 +80,17 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    // ✅ Logout
+
     fun logout() {
         auth.signOut()
     }
 
-    // ✅ Get Current User ID
+
     fun getCurrentUserId(): String {
         return auth.currentUser?.uid ?: ""
     }
 
-    // ✅ Get Current User Data
+
     fun getCurrentUser(
         onSuccess: (UserModel) -> Unit,
         onError: (String) -> Unit

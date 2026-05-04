@@ -248,7 +248,7 @@ fun SearchFundisScreen(navController: NavHostController) {
                                 }
                             }
 
-                            // Chat Button
+
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))

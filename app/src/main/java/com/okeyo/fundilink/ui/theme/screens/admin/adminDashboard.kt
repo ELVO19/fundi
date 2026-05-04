@@ -187,7 +187,7 @@ fun AdminDashboard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Users Stats
+
             item {
                 Text(
                     text = "Users Overview",
@@ -222,7 +222,7 @@ fun AdminDashboard(
                 }
             }
 
-            // Jobs Stats
+
             item {
                 Text(
                     text = "Jobs Overview",
@@ -257,7 +257,7 @@ fun AdminDashboard(
                 }
             }
 
-            // PIE CHART — Users Distribution
+
             item {
                 Text(
                     text = "Users Distribution 📊",
@@ -314,7 +314,7 @@ fun AdminDashboard(
                 }
             }
 
-            // BAR CHART — Jobs Status
+
             item {
                 Text(
                     text = "Jobs Status 📈",
@@ -383,7 +383,7 @@ fun AdminDashboard(
                 }
             }
 
-            // Recent Users
+
             item {
                 Text(
                     text = "Recent Users",
