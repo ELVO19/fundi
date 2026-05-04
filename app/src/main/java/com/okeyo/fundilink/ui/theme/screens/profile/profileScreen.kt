@@ -1,11 +1,8 @@
 package com.okeyo.fundilink.screens.profile
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
@@ -36,11 +34,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +55,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -63,6 +66,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.okeyo.fundilink.data.AuthViewModel
 import com.okeyo.fundilink.data.CloudinaryHelper
 import com.okeyo.fundilink.models.UserModel
+import com.okeyo.fundilink.navigation.ROUTE_EDIT_PROFILE
 import com.okeyo.fundilink.navigation.ROUTE_LOGIN
 import com.okeyo.fundilink.navigation.ROUTE_MAIN
 import com.okeyo.fundilink.ui.theme.DarkBackground
@@ -80,7 +84,8 @@ import com.okeyo.fundilink.ui.theme.White
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel(),
+    isDarkTheme: MutableState<Boolean> = mutableStateOf(true)
 ) {
     val context = LocalContext.current
     var currentUser by remember { mutableStateOf<UserModel?>(null) }
@@ -88,10 +93,9 @@ fun ProfileScreen(
     var uploadMessage by remember { mutableStateOf("") }
     val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-    // Image picker launcher
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
+    ) { uri ->
         uri?.let {
             isUploadingPhoto = true
             uploadMessage = ""
@@ -187,7 +191,6 @@ fun ProfileScreen(
                     }
                 }
 
-                // Camera Icon
                 Box(
                     modifier = Modifier
                         .size(28.dp)
@@ -207,7 +210,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Upload status
             if (isUploadingPhoto) {
                 CircularProgressIndicator(color = Orange, modifier = Modifier.size(24.dp))
                 Text(
@@ -274,7 +276,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Info Card
+            // Profile Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -289,7 +291,6 @@ fun ProfileScreen(
                         color = Orange
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     ProfileInfoRow(
                         icon = { Icon(Icons.Default.Email, contentDescription = null, tint = Orange, modifier = Modifier.size(18.dp)) },
                         label = "Email",
@@ -316,7 +317,146 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Dark/Light Mode Toggle
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkCard)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = if (isDarkTheme.value) "🌙" else "☀️",
+                            fontSize = 20.sp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = if (isDarkTheme.value) "Dark Mode" else "Light Mode",
+                                fontFamily = Poppins,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp,
+                                color = White
+                            )
+                            Text(
+                                text = "Toggle app theme",
+                                fontFamily = Poppins,
+                                fontSize = 11.sp,
+                                color = GrayText
+                            )
+                        }
+                    }
+                    Switch(
+                        checked = isDarkTheme.value,
+                        onCheckedChange = { isDarkTheme.value = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = White,
+                            checkedTrackColor = Orange,
+                            uncheckedThumbColor = White,
+                            uncheckedTrackColor = GrayText
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Availability Toggle — only for fundis
+            if (currentUser?.role == "fundi") {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = DarkCard)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = if (currentUser?.isAvailable == true) "🟢" else "🔴",
+                                fontSize = 20.sp
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = if (currentUser?.isAvailable == true) "Available" else "Busy",
+                                    fontFamily = Poppins,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 14.sp,
+                                    color = White
+                                )
+                                Text(
+                                    text = "Toggle your availability",
+                                    fontFamily = Poppins,
+                                    fontSize = 11.sp,
+                                    color = GrayText
+                                )
+                            }
+                        }
+                        Switch(
+                            checked = currentUser?.isAvailable ?: true,
+                            onCheckedChange = { isAvailable ->
+                                FirebaseDatabase.getInstance()
+                                    .getReference("users")
+                                    .child(uid)
+                                    .child("isAvailable")
+                                    .setValue(isAvailable)
+                                    .addOnSuccessListener {
+                                        authViewModel.getCurrentUser(
+                                            onSuccess = { currentUser = it },
+                                            onError = {}
+                                        )
+                                    }
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = White,
+                                checkedTrackColor = GreenSuccess,
+                                uncheckedThumbColor = White,
+                                uncheckedTrackColor = RedError
+                            )
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            // Edit Profile Button
+            Button(
+                onClick = { navController.navigate(ROUTE_EDIT_PROFILE) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = DarkCard)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = null,
+                    tint = Orange
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Edit Profile",
+                    fontFamily = Poppins,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = Orange
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Logout Button
             Button(
@@ -332,7 +472,11 @@ fun ProfileScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = RedError)
             ) {
-                Icon(imageVector = Icons.Default.ExitToApp, contentDescription = null, tint = White)
+                Icon(
+                    imageVector = Icons.Default.ExitToApp,
+                    contentDescription = null,
+                    tint = White
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Logout",
@@ -358,8 +502,19 @@ fun ProfileInfoRow(
         icon()
         Spacer(modifier = Modifier.width(12.dp))
         Column {
-            Text(text = label, fontFamily = Poppins, fontSize = 11.sp, color = GrayText)
-            Text(text = value, fontFamily = Poppins, fontSize = 14.sp, color = White, fontWeight = FontWeight.Medium)
+            Text(
+                text = label,
+                fontFamily = Poppins,
+                fontSize = 11.sp,
+                color = GrayText
+            )
+            Text(
+                text = value,
+                fontFamily = Poppins,
+                fontSize = 14.sp,
+                color = White,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }

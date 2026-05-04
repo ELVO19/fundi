@@ -1,5 +1,6 @@
 package com.okeyo.fundilink.screens.jobs
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,6 +64,7 @@ import com.okeyo.fundilink.ui.theme.White
 @Composable
 fun JobsScreen(navController: NavHostController) {
 
+    val context = LocalContext.current
     var allJobs by remember { mutableStateOf<List<JobModel>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
 
@@ -183,8 +186,11 @@ fun JobsScreen(navController: NavHostController) {
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(
-                                            if (job.status == "open") GreenSuccess.copy(alpha = 0.2f)
-                                            else RedError.copy(alpha = 0.2f)
+                                            when (job.status) {
+                                                "open" -> GreenSuccess.copy(alpha = 0.2f)
+                                                "completed" -> Gold.copy(alpha = 0.2f)
+                                                else -> RedError.copy(alpha = 0.2f)
+                                            }
                                         )
                                         .padding(horizontal = 10.dp, vertical = 4.dp)
                                 ) {
@@ -192,13 +198,36 @@ fun JobsScreen(navController: NavHostController) {
                                         text = job.status.replaceFirstChar { it.uppercase() },
                                         fontFamily = Poppins,
                                         fontSize = 11.sp,
-                                        color = if (job.status == "open") GreenSuccess else RedError,
+                                        color = when (job.status) {
+                                            "open" -> GreenSuccess
+                                            "completed" -> Gold
+                                            else -> RedError
+                                        },
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
 
                             Spacer(modifier = Modifier.height(6.dp))
+
+                            // Category Badge
+                            if (job.category.isNotEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .background(Orange.copy(alpha = 0.15f))
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = job.category,
+                                        fontFamily = Poppins,
+                                        fontSize = 10.sp,
+                                        color = Orange,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                            }
 
                             // Description
                             Text(
@@ -292,6 +321,48 @@ fun JobsScreen(navController: NavHostController) {
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Share Button
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Orange.copy(alpha = 0.1f))
+                                    .padding(vertical = 8.dp)
+                                    .clickable {
+                                        val shareText = """
+                                            🔧 Job Available on FundiLink!
+                                            
+                                            📌 ${job.title}
+                                            📍 ${job.location}
+                                            💰 Ksh ${job.budget}
+                                            🏷️ ${job.category}
+                                            
+                                            📝 ${job.description}
+                                            
+                                            Download FundiLink to bid on this job!
+                                        """.trimIndent()
+
+                                        val intent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_TEXT, shareText)
+                                        }
+                                        context.startActivity(
+                                            Intent.createChooser(intent, "Share Job via")
+                                        )
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "📤 Share Job",
+                                    fontFamily = Poppins,
+                                    fontSize = 12.sp,
+                                    color = Orange,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
                         }
                     }

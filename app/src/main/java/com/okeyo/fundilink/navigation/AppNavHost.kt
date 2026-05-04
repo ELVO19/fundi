@@ -7,6 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.okeyo.fundilink.screens.onboarding.OnboardingScreen
+import com.okeyo.fundilink.screens.profile.EditProfileScreen
+import com.okeyo.fundilink.screens.auth.ForgotPasswordScreen
 
 import com.okeyo.fundilink.screens.jobs.PlaceBidScreen
 import com.okeyo.fundilink.screens.jobs.PostJobScreen
@@ -77,6 +80,10 @@ fun AppNavHost(
             val receiverName = backStackEntry.arguments?.getString("receiverName") ?: ""
             ChatScreen(navController = navController, receiverId = receiverId, receiverName = receiverName)
         }
+
+        composable(ROUTE_ONBOARDING) { OnboardingScreen(navController) }
+        composable(ROUTE_EDIT_PROFILE) { EditProfileScreen(navController) }
+        composable(ROUTE_FORGOT_PASSWORD) { ForgotPasswordScreen(navController) }
     }
 }
 
