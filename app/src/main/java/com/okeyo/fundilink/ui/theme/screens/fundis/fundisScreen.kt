@@ -51,6 +51,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.okeyo.fundilink.models.UserModel
 import com.okeyo.fundilink.navigation.ROUTE_CHAT
+import com.okeyo.fundilink.screens.shared.FundiCardSkeleton
 import com.okeyo.fundilink.ui.theme.DarkBackground
 import com.okeyo.fundilink.ui.theme.DarkCard
 import com.okeyo.fundilink.ui.theme.DarkSurface
@@ -59,6 +60,7 @@ import com.okeyo.fundilink.ui.theme.GrayText
 import com.okeyo.fundilink.ui.theme.GreenSuccess
 import com.okeyo.fundilink.ui.theme.Orange
 import com.okeyo.fundilink.ui.theme.Poppins
+import com.okeyo.fundilink.ui.theme.RedError
 import com.okeyo.fundilink.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -187,7 +189,13 @@ fun SearchFundisScreen(navController: NavHostController) {
                         )
                     }
                 }
-            } else {
+            }
+            if (allFundis.isEmpty()) {
+                items(5) {
+                    FundiCardSkeleton()
+                }
+            }
+            else {
                 items(filteredFundis) { fundi ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -212,6 +220,24 @@ fun SearchFundisScreen(navController: NavHostController) {
                                     fontWeight = FontWeight.Bold,
                                     color = White,
                                     fontSize = 20.sp
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (fundi.isAvailable) GreenSuccess
+                                            else RedError
+                                        )
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (fundi.isAvailable) "Available" else "Busy",
+                                    fontFamily = Poppins,
+                                    fontSize = 10.sp,
+                                    color = if (fundi.isAvailable) GreenSuccess else RedError
                                 )
                             }
 

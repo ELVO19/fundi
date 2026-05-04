@@ -8,5 +8,6 @@ data class UserModel(
     val phone: String = "",
     val location: String = "",
     val profileImage: String = "",
+    val isAvailable: Boolean = true,
     val rating: Float = 0f
 )

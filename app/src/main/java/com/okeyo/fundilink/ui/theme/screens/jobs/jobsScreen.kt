@@ -376,6 +376,48 @@ fun JobsScreen(navController: NavHostController) {
                                     )
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Share Button
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Orange.copy(alpha = 0.1f))
+                                    .padding(vertical = 8.dp)
+                                    .clickable {
+                                        val shareText = """
+                                            🔧 Job Available on FundiLink!
+                                            
+                                            📌 ${job.title}
+                                            📍 ${job.location}
+                                            💰 Ksh ${job.budget}
+                                            🏷️ ${job.category}
+                                            
+                                            📝 ${job.description}
+                                            
+                                            Download FundiLink to bid on this job!
+                                        """.trimIndent()
+
+                                        val intent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_TEXT, shareText)
+                                        }
+                                        context.startActivity(
+                                            Intent.createChooser(intent, "Share Job via")
+                                        )
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "📤 Share Job",
+                                    fontFamily = Poppins,
+                                    fontSize = 12.sp,
+                                    color = Orange,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                     }
                 }

@@ -3,6 +3,7 @@ package com.okeyo.fundilink.screens.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,9 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -47,7 +50,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.okeyo.fundilink.R
 import com.okeyo.fundilink.data.AuthViewModel
-import com.okeyo.fundilink.navigation.Routes
+import com.okeyo.fundilink.navigation.ROUTE_ADMIN_DASHBOARD
+import com.okeyo.fundilink.navigation.ROUTE_FORGOT_PASSWORD
+import com.okeyo.fundilink.navigation.ROUTE_LOGIN
+import com.okeyo.fundilink.navigation.ROUTE_MAIN
+import com.okeyo.fundilink.navigation.ROUTE_REGISTER
 import com.okeyo.fundilink.ui.theme.DarkBackground
 import com.okeyo.fundilink.ui.theme.GrayText
 import com.okeyo.fundilink.ui.theme.Orange
@@ -71,7 +78,8 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBackground)
-            .padding(24.dp),
+            .padding(24.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -107,6 +115,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Email Field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -122,6 +131,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Password Field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -147,7 +157,20 @@ fun LoginScreen(
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        // Forgot Password
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            TextButton(onClick = { navController.navigate(ROUTE_FORGOT_PASSWORD) }) {
+                Text(
+                    text = "Forgot Password?",
+                    fontFamily = Poppins,
+                    color = Orange,
+                    fontSize = 12.sp
+                )
+            }
+        }
 
         if (errorMessage.isNotEmpty()) {
             Text(
@@ -156,10 +179,12 @@ fun LoginScreen(
                 color = RedError,
                 fontSize = 12.sp
             )
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // Login Button
         Button(
             onClick = {
                 if (email.isEmpty() || password.isEmpty()) {
@@ -173,12 +198,12 @@ fun LoginScreen(
                         onSuccess = { role ->
                             isLoading = false
                             if (role == "admin") {
-                                navController.navigate(Routes.ADMIN_DASHBOARD) {
-                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                navController.navigate(ROUTE_ADMIN_DASHBOARD) {
+                                    popUpTo(ROUTE_LOGIN) { inclusive = true }
                                 }
                             } else {
-                                navController.navigate(Routes.MAIN) {
-                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                navController.navigate(ROUTE_MAIN) {
+                                    popUpTo(ROUTE_LOGIN) { inclusive = true }
                                 }
                             }
                         },
@@ -210,12 +235,24 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(onClick = { navController.navigate(Routes.REGISTER) }) {
-            Text("Don't have an account? ", fontFamily = Poppins, color = GrayText, fontSize = 13.sp)
-            Text("Register", fontFamily = Poppins, color = Orange, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+        TextButton(onClick = { navController.navigate(ROUTE_REGISTER) }) {
+            Text(
+                text = "Don't have an account? ",
+                fontFamily = Poppins,
+                color = GrayText,
+                fontSize = 13.sp
+            )
+            Text(
+                text = "Register",
+                fontFamily = Poppins,
+                color = Orange,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 13.sp
+            )
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun LoginScreenPreview() {

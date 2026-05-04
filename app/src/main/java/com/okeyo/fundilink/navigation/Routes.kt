@@ -33,3 +33,7 @@ const val ROUTE_JOB_BIDS = "job_bids/{jobId}"
 const val ROUTE_RATE_FUNDI = "rate_fundi/{fundiId}/{jobId}"
 const val ROUTE_SEARCH_FUNDIS = "search_fundis"
 const val ROUTE_CHAT = "chat/{receiverId}/{receiverName}"
+
+const val ROUTE_ONBOARDING = "onboarding"
+const val ROUTE_EDIT_PROFILE = "edit_profile"
+const val ROUTE_FORGOT_PASSWORD = "forgot_password"
