@@ -209,7 +209,7 @@ fun AlertsScreen(navController: NavHostController) {
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
 
-                                // Job title
+
                                 Text(
                                     text = "📌 ${job?.title ?: "Job"}",
                                     fontFamily = Poppins,
@@ -220,7 +220,7 @@ fun AlertsScreen(navController: NavHostController) {
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
-                                // Fundi info
+
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -293,7 +293,6 @@ fun AlertsScreen(navController: NavHostController) {
 
                                 Spacer(modifier = Modifier.height(12.dp))
 
-                                // Action Buttons
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -321,7 +320,7 @@ fun AlertsScreen(navController: NavHostController) {
                                         )
                                     }
 
-                                    // Rate Fundi — only if accepted
+
                                     if (bid.status == "accepted") {
                                         Box(
                                             modifier = Modifier
@@ -354,7 +353,7 @@ fun AlertsScreen(navController: NavHostController) {
                 }
             }
 
-            // ============ FUNDI ALERTS ============
+
             if (currentUserRole == "fundi") {
                 item {
                     Text(
