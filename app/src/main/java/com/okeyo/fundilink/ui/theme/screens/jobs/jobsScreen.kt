@@ -77,6 +77,18 @@ fun JobsScreen(navController: NavHostController) {
     }
 
     LaunchedEffect(Unit) {
+        // existing Firebase jobs listener...
+
+        // Add this to get role
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        FirebaseDatabase.getInstance().getReference("users")
+            .child(uid).child("role").get()
+            .addOnSuccessListener { snapshot ->
+                currentUserRole = snapshot.value?.toString() ?: ""
+            }
+    }
+
+    LaunchedEffect(Unit) {
         // Get user role
         FirebaseDatabase.getInstance().getReference("users")
             .child(uid).child("role").get()
