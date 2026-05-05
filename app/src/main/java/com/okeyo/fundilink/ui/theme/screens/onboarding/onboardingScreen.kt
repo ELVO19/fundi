@@ -99,7 +99,7 @@ fun OnboardingScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.Center
         ) {
 
-            // Skip Button
+
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.TopEnd
@@ -122,7 +122,7 @@ fun OnboardingScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Emoji
+            
             Box(
                 modifier = Modifier
                     .size(150.dp)
@@ -139,7 +139,7 @@ fun OnboardingScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Title
+
             Text(
                 text = pages[currentPage].title,
                 fontFamily = Poppins,
@@ -152,7 +152,7 @@ fun OnboardingScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Description
+
             Text(
                 text = pages[currentPage].description,
                 fontFamily = Poppins,
@@ -182,7 +182,7 @@ fun OnboardingScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Next/Get Started Button
+
             Button(
                 onClick = {
                     if (currentPage < pages.size - 1) {

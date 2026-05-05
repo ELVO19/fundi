@@ -115,7 +115,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Email Field
+
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -131,7 +131,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password Field
+
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -157,7 +157,7 @@ fun LoginScreen(
             singleLine = true
         )
 
-        // Forgot Password
+
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.CenterEnd
@@ -184,7 +184,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Login Button
+
         Button(
             onClick = {
                 if (email.isEmpty() || password.isEmpty()) {

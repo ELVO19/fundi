@@ -49,21 +49,13 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-
-    // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-database-ktx")
-
-    // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
-    // Material Icons Extended
     implementation("androidx.compose.material:material-icons-extended:1.6.7")
-
-    // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation(libs.androidx.compose.material3.lint)
-
 
     implementation("com.cloudinary:cloudinary-android:2.3.1")
 

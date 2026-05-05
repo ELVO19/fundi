@@ -72,14 +72,14 @@ fun AlertsScreen(navController: NavHostController) {
 
     LaunchedEffect(Unit) {
 
-        // Get role
+
         FirebaseDatabase.getInstance().getReference("users")
             .child(uid).child("role").get()
             .addOnSuccessListener { snapshot ->
                 currentUserRole = snapshot.value?.toString() ?: ""
             }
 
-        // Fundi bids
+
         FirebaseDatabase.getInstance().getReference("bids")
             .orderByChild("fundiId").equalTo(uid)
             .addValueEventListener(object : ValueEventListener {
@@ -94,7 +94,7 @@ fun AlertsScreen(navController: NavHostController) {
                 override fun onCancelled(error: DatabaseError) {}
             })
 
-        // Client jobs and their bids
+
         FirebaseDatabase.getInstance().getReference("jobs")
             .orderByChild("clientId").equalTo(uid)
             .addValueEventListener(object : ValueEventListener {
@@ -106,7 +106,7 @@ fun AlertsScreen(navController: NavHostController) {
                     }
                     myJobs = jobs
 
-                    // Fetch bids for client's jobs
+
                     jobs.forEach { job ->
                         FirebaseDatabase.getInstance().getReference("bids")
                             .orderByChild("jobId").equalTo(job.id)
@@ -119,7 +119,7 @@ fun AlertsScreen(navController: NavHostController) {
                                     }
                                     myJobBids = (myJobBids + bids).distinctBy { it.id }
 
-                                    // Fetch fundi names
+
                                     bids.forEach { bid ->
                                         FirebaseDatabase.getInstance().getReference("users")
                                             .child(bid.fundiId).get()
@@ -165,7 +165,7 @@ fun AlertsScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // ============ CLIENT ALERTS ============
+
             if (currentUserRole == "client") {
                 item {
                     Text(
@@ -209,7 +209,7 @@ fun AlertsScreen(navController: NavHostController) {
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
 
-                                // Job title
+
                                 Text(
                                     text = "📌 ${job?.title ?: "Job"}",
                                     fontFamily = Poppins,
@@ -220,7 +220,7 @@ fun AlertsScreen(navController: NavHostController) {
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
-                                // Fundi info
+
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -293,12 +293,12 @@ fun AlertsScreen(navController: NavHostController) {
 
                                 Spacer(modifier = Modifier.height(12.dp))
 
-                                // Action Buttons
+
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    // View All Bids
+
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
@@ -321,7 +321,7 @@ fun AlertsScreen(navController: NavHostController) {
                                         )
                                     }
 
-                                    // Rate Fundi — only if accepted
+
                                     if (bid.status == "accepted") {
                                         Box(
                                             modifier = Modifier
@@ -354,7 +354,7 @@ fun AlertsScreen(navController: NavHostController) {
                 }
             }
 
-            // ============ FUNDI ALERTS ============
+
             if (currentUserRole == "fundi") {
                 item {
                     Text(
@@ -437,7 +437,7 @@ fun AlertsScreen(navController: NavHostController) {
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(text = "💰 Ksh ${bid.amount}", fontFamily = Poppins, fontSize = 13.sp, color = Gold, fontWeight = FontWeight.SemiBold)
 
-                                // Show accepted message
+
                                 if (bid.status == "accepted") {
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Box(

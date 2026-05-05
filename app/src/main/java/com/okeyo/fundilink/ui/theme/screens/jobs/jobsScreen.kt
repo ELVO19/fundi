@@ -77,9 +77,9 @@ fun JobsScreen(navController: NavHostController) {
     }
 
     LaunchedEffect(Unit) {
-        // existing Firebase jobs listener...
 
-        // Add this to get role
+
+
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         FirebaseDatabase.getInstance().getReference("users")
             .child(uid).child("role").get()
@@ -89,14 +89,14 @@ fun JobsScreen(navController: NavHostController) {
     }
 
     LaunchedEffect(Unit) {
-        // Get user role
+
         FirebaseDatabase.getInstance().getReference("users")
             .child(uid).child("role").get()
             .addOnSuccessListener { snapshot ->
                 currentUserRole = snapshot.value?.toString() ?: ""
             }
 
-        // Fetch all jobs
+
         FirebaseDatabase.getInstance().getReference("jobs")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -191,7 +191,7 @@ fun JobsScreen(navController: NavHostController) {
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
 
-                            // Title & Status
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -233,7 +233,7 @@ fun JobsScreen(navController: NavHostController) {
 
                             Spacer(modifier = Modifier.height(6.dp))
 
-                            // Category Badge
+
                             if (job.category.isNotEmpty()) {
                                 Box(
                                     modifier = Modifier
@@ -252,7 +252,7 @@ fun JobsScreen(navController: NavHostController) {
                                 Spacer(modifier = Modifier.height(6.dp))
                             }
 
-                            // Description
+
                             Text(
                                 text = job.description,
                                 fontFamily = Poppins,

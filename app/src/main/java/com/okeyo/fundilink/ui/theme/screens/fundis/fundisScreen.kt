@@ -206,7 +206,7 @@ fun SearchFundisScreen(navController: NavHostController) {
                             modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Avatar
+
                             Box(
                                 modifier = Modifier
                                     .size(52.dp)

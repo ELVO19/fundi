@@ -93,7 +93,7 @@ fun HomeScreen(
             onError = {}
         )
 
-        // Fetch all jobs
+
         FirebaseDatabase.getInstance().getReference("jobs")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -108,7 +108,7 @@ fun HomeScreen(
                 override fun onCancelled(error: DatabaseError) {}
             })
 
-        // Fetch fundi bids & earnings
+
         FirebaseDatabase.getInstance().getReference("bids")
             .orderByChild("fundiId").equalTo(uid)
             .addValueEventListener(object : ValueEventListener {
@@ -166,7 +166,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Welcome Card
+
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -227,10 +227,10 @@ fun HomeScreen(
                 }
             }
 
-            // ============ CLIENT SECTION ============
+
             if (currentUser?.role == "client") {
 
-                // Client Stats
+
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -284,7 +284,7 @@ fun HomeScreen(
                     }
                 }
 
-                // Client Quick Actions
+
                 item {
                     Text(text = "Quick Actions", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = White)
                     Spacer(modifier = Modifier.height(12.dp))
@@ -292,7 +292,7 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Post Job
+
                         Card(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
@@ -315,7 +315,7 @@ fun HomeScreen(
                             }
                         }
 
-                        // Find Fundi
+
                         Card(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
@@ -338,7 +338,7 @@ fun HomeScreen(
                             }
                         }
 
-                        // My Jobs
+
                         Card(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
@@ -363,7 +363,7 @@ fun HomeScreen(
                     }
                 }
 
-                // Client Recent Jobs
+
                 item {
                     Text(text = "My Recent Jobs", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = White)
                 }
@@ -436,10 +436,10 @@ fun HomeScreen(
                 }
             }
 
-            // ============ FUNDI SECTION ============
+
             if (currentUser?.role == "fundi") {
 
-                // Fundi Stats
+
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -493,7 +493,7 @@ fun HomeScreen(
                     }
                 }
 
-                // Fundi Quick Actions
+
                 item {
                     Text(text = "Quick Actions", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = White)
                     Spacer(modifier = Modifier.height(12.dp))
@@ -501,7 +501,7 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Browse Jobs
+
                         Card(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
@@ -524,7 +524,7 @@ fun HomeScreen(
                             }
                         }
 
-                        // My Bids
+
                         Card(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
@@ -547,7 +547,7 @@ fun HomeScreen(
                             }
                         }
 
-                        // Earnings
+
                         Card(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
@@ -572,7 +572,7 @@ fun HomeScreen(
                     }
                 }
 
-                // Fundi Recent Bids
+
                 item {
                     Text(text = "My Recent Bids", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = White)
                 }

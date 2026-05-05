@@ -185,7 +185,7 @@ fun JobBidsScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
 
-                            // Fundi Info
+
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
                                     modifier = Modifier
@@ -258,7 +258,7 @@ fun JobBidsScreen(
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // Status Badge
+
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
