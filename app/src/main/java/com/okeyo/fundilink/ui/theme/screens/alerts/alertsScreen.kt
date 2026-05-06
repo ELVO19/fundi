@@ -44,6 +44,7 @@ import com.google.firebase.database.ValueEventListener
 import com.okeyo.fundilink.models.BidModel
 import com.okeyo.fundilink.models.JobModel
 import com.okeyo.fundilink.models.UserModel
+import com.okeyo.fundilink.navigation.ROUTE_CHAT
 import com.okeyo.fundilink.navigation.ROUTE_JOB_BIDS
 import com.okeyo.fundilink.navigation.ROUTE_RATE_FUNDI
 import com.okeyo.fundilink.ui.theme.DarkBackground
@@ -67,6 +68,7 @@ fun AlertsScreen(navController: NavHostController) {
     var myJobBids by remember { mutableStateOf<List<BidModel>>(emptyList()) }
     var myJobs by remember { mutableStateOf<List<JobModel>>(emptyList()) }
     var fundiNames by remember { mutableStateOf<Map<String, UserModel>>(emptyMap()) }
+    var clientNames by remember { mutableStateOf<Map<String, UserModel>>(emptyMap()) }
 
     val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
@@ -90,6 +92,25 @@ fun AlertsScreen(navController: NavHostController) {
                         if (bid != null) bids.add(bid)
                     }
                     myBids = bids
+
+
+                    bids.filter { it.status == "accepted" }.forEach { bid ->
+                        FirebaseDatabase.getInstance().getReference("jobs")
+                            .child(bid.jobId).get()
+                            .addOnSuccessListener { jobSnapshot ->
+                                val clientId = jobSnapshot.child("clientId").value?.toString() ?: ""
+                                if (clientId.isNotEmpty()) {
+                                    FirebaseDatabase.getInstance().getReference("users")
+                                        .child(clientId).get()
+                                        .addOnSuccessListener { userSnapshot ->
+                                            val user = userSnapshot.getValue(UserModel::class.java)
+                                            if (user != null) {
+                                                clientNames = clientNames + (bid.jobId to user)
+                                            }
+                                        }
+                                }
+                            }
+                    }
                 }
                 override fun onCancelled(error: DatabaseError) {}
             })
@@ -106,7 +127,6 @@ fun AlertsScreen(navController: NavHostController) {
                     }
                     myJobs = jobs
 
-
                     jobs.forEach { job ->
                         FirebaseDatabase.getInstance().getReference("bids")
                             .orderByChild("jobId").equalTo(job.id)
@@ -118,7 +138,6 @@ fun AlertsScreen(navController: NavHostController) {
                                         if (bid != null) bids.add(bid)
                                     }
                                     myJobBids = (myJobBids + bids).distinctBy { it.id }
-
 
                                     bids.forEach { bid ->
                                         FirebaseDatabase.getInstance().getReference("users")
@@ -167,6 +186,7 @@ fun AlertsScreen(navController: NavHostController) {
 
 
             if (currentUserRole == "client") {
+
                 item {
                     Text(
                         text = "Bids on My Jobs 📋",
@@ -209,7 +229,6 @@ fun AlertsScreen(navController: NavHostController) {
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
 
-
                                 Text(
                                     text = "📌 ${job?.title ?: "Job"}",
                                     fontFamily = Poppins,
@@ -220,32 +239,15 @@ fun AlertsScreen(navController: NavHostController) {
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
-
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column {
-                                        Text(
-                                            text = "👷 ${fundi?.name ?: "Fundi"}",
-                                            fontFamily = Poppins,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 14.sp,
-                                            color = White
-                                        )
-                                        Text(
-                                            text = "📍 ${fundi?.location ?: "—"}",
-                                            fontFamily = Poppins,
-                                            fontSize = 11.sp,
-                                            color = GrayText
-                                        )
-                                        Text(
-                                            text = "⭐ ${fundi?.rating ?: 0f} Rating",
-                                            fontFamily = Poppins,
-                                            fontSize = 11.sp,
-                                            color = Gold
-                                        )
+                                        Text(text = "👷 ${fundi?.name ?: "Fundi"}", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = White)
+                                        Text(text = "📍 ${fundi?.location ?: "—"}", fontFamily = Poppins, fontSize = 11.sp, color = GrayText)
+                                        Text(text = "⭐ ${fundi?.rating ?: 0f} Rating", fontFamily = Poppins, fontSize = 11.sp, color = Gold)
                                     }
                                     Box(
                                         modifier = Modifier
@@ -274,25 +276,11 @@ fun AlertsScreen(navController: NavHostController) {
                                 }
 
                                 Spacer(modifier = Modifier.height(8.dp))
-
-                                Text(
-                                    text = "💬 ${bid.message}",
-                                    fontFamily = Poppins,
-                                    fontSize = 12.sp,
-                                    color = GrayText,
-                                    maxLines = 2
-                                )
+                                Text(text = "💬 ${bid.message}", fontFamily = Poppins, fontSize = 12.sp, color = GrayText, maxLines = 2)
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "💰 Ksh ${bid.amount}",
-                                    fontFamily = Poppins,
-                                    fontSize = 13.sp,
-                                    color = Gold,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                Text(text = "💰 Ksh ${bid.amount}", fontFamily = Poppins, fontSize = 13.sp, color = Gold, fontWeight = FontWeight.SemiBold)
 
                                 Spacer(modifier = Modifier.height(12.dp))
-
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -312,13 +300,7 @@ fun AlertsScreen(navController: NavHostController) {
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = "View All Bids",
-                                            fontFamily = Poppins,
-                                            fontSize = 11.sp,
-                                            color = Orange,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
+                                        Text(text = "View All Bids", fontFamily = Poppins, fontSize = 11.sp, color = Orange, fontWeight = FontWeight.SemiBold)
                                     }
 
 
@@ -338,13 +320,7 @@ fun AlertsScreen(navController: NavHostController) {
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(
-                                                text = "⭐ Rate Fundi",
-                                                fontFamily = Poppins,
-                                                fontSize = 11.sp,
-                                                color = Gold,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
+                                            Text(text = "⭐ Rate Fundi", fontFamily = Poppins, fontSize = 11.sp, color = Gold, fontWeight = FontWeight.SemiBold)
                                         }
                                     }
                                 }
@@ -356,6 +332,7 @@ fun AlertsScreen(navController: NavHostController) {
 
 
             if (currentUserRole == "fundi") {
+
                 item {
                     Text(
                         text = "My Bids & Status 🔔",
@@ -376,7 +353,7 @@ fun AlertsScreen(navController: NavHostController) {
                 if (myBids.isEmpty()) {
                     item {
                         Box(
-                            modifier = Modifier.fillMaxWidth().height(300.dp),
+                            modifier = Modifier.fillMaxWidth().height(200.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -400,13 +377,7 @@ fun AlertsScreen(navController: NavHostController) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = "Job #${bid.jobId.take(8)}",
-                                        fontFamily = Poppins,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp,
-                                        color = White
-                                    )
+                                    Text(text = "Job #${bid.jobId.take(8)}", fontFamily = Poppins, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = White)
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(8.dp))
@@ -432,6 +403,7 @@ fun AlertsScreen(navController: NavHostController) {
                                         )
                                     }
                                 }
+
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(text = "💬 ${bid.message}", fontFamily = Poppins, fontSize = 12.sp, color = GrayText, maxLines = 2)
                                 Spacer(modifier = Modifier.height(6.dp))
@@ -448,10 +420,40 @@ fun AlertsScreen(navController: NavHostController) {
                                             .padding(8.dp)
                                     ) {
                                         Text(
-                                            text = "🎉 Congratulations! Your bid was accepted. Contact the client to proceed.",
+                                            text = "🎉 Your bid was accepted! Contact the client to proceed.",
                                             fontFamily = Poppins,
                                             fontSize = 11.sp,
                                             color = GreenSuccess
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+
+                                    val client = clientNames[bid.jobId]
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(GreenSuccess.copy(alpha = 0.15f))
+                                            .padding(vertical = 10.dp)
+                                            .clickable {
+                                                client?.let {
+                                                    navController.navigate(
+                                                        ROUTE_CHAT
+                                                            .replace("{receiverId}", it.id)
+                                                            .replace("{receiverName}", it.name)
+                                                    )
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "💬 Chat with ${client?.name ?: "Client"}",
+                                            fontFamily = Poppins,
+                                            fontSize = 12.sp,
+                                            color = GreenSuccess,
+                                            fontWeight = FontWeight.SemiBold
                                         )
                                     }
                                 }

@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,7 +45,6 @@ fun MainScreen(
     navController: NavHostController,
     isDarkTheme: MutableState<Boolean> = mutableStateOf(true)
 ) {
-
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -64,14 +63,7 @@ fun MainScreen(
                         }
                     },
                     icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "Home") },
-                    label = {
-                        Text(
-                            text = "Home",
-                            fontFamily = Poppins,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    },
+                    label = { Text(text = "Home", fontFamily = Poppins, fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Orange,
                         selectedTextColor = Orange,
@@ -90,14 +82,7 @@ fun MainScreen(
                         }
                     },
                     icon = { Icon(imageVector = Icons.Default.Work, contentDescription = "Jobs") },
-                    label = {
-                        Text(
-                            text = "Jobs",
-                            fontFamily = Poppins,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    },
+                    label = { Text(text = "Jobs", fontFamily = Poppins, fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Orange,
                         selectedTextColor = Orange,
@@ -116,14 +101,7 @@ fun MainScreen(
                         }
                     },
                     icon = { Icon(imageVector = Icons.Default.Notifications, contentDescription = "Alerts") },
-                    label = {
-                        Text(
-                            text = "Alerts",
-                            fontFamily = Poppins,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    },
+                    label = { Text(text = "Alerts", fontFamily = Poppins, fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Orange,
                         selectedTextColor = Orange,
@@ -142,14 +120,7 @@ fun MainScreen(
                         }
                     },
                     icon = { Icon(imageVector = Icons.Default.Person, contentDescription = "Profile") },
-                    label = {
-                        Text(
-                            text = "Profile",
-                            fontFamily = Poppins,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    },
+                    label = { Text(text = "Profile", fontFamily = Poppins, fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Orange,
                         selectedTextColor = Orange,
@@ -167,7 +138,10 @@ fun MainScreen(
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(ROUTE_HOME) {
-                HomeScreen(navController = navController)
+                HomeScreen(
+                    navController = navController,
+                    bottomNavController = bottomNavController
+                )
             }
             composable(ROUTE_JOBS) {
                 JobsScreen(navController = navController)
@@ -178,7 +152,7 @@ fun MainScreen(
             composable(ROUTE_PROFILE) {
                 ProfileScreen(
                     navController = navController,
-
+                    isDarkTheme = isDarkTheme
                 )
             }
         }

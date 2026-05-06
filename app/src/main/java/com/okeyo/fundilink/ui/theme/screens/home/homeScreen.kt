@@ -77,9 +77,9 @@ import com.okeyo.fundilink.ui.theme.White
 @Composable
 fun HomeScreen(
     navController: NavHostController,
+    bottomNavController: NavHostController? = null,
     authViewModel: AuthViewModel = viewModel()
 ) {
-
     var currentUser by remember { mutableStateOf<UserModel?>(null) }
     var recentJobs by remember { mutableStateOf<List<JobModel>>(emptyList()) }
     var myBids by remember { mutableStateOf<List<BidModel>>(emptyList()) }
@@ -92,7 +92,6 @@ fun HomeScreen(
             onSuccess = { currentUser = it },
             onError = {}
         )
-
 
         FirebaseDatabase.getInstance().getReference("jobs")
             .addValueEventListener(object : ValueEventListener {
@@ -107,7 +106,6 @@ fun HomeScreen(
                 }
                 override fun onCancelled(error: DatabaseError) {}
             })
-
 
         FirebaseDatabase.getInstance().getReference("bids")
             .orderByChild("fundiId").equalTo(uid)
@@ -145,7 +143,9 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = {
+                        bottomNavController?.navigate(ROUTE_ALERTS)
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Notifications,
                             contentDescription = "Notifications",
@@ -343,7 +343,7 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = DarkCard),
-                            onClick = { navController.navigate(ROUTE_JOBS) }
+                            onClick = { bottomNavController?.navigate(ROUTE_JOBS) }
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp),
@@ -378,6 +378,7 @@ fun HomeScreen(
                                 Text(text = "🔧", fontSize = 48.sp)
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(text = "No jobs posted yet", fontFamily = Poppins, color = GrayText, fontSize = 14.sp)
+                                Text(text = "Tap Post Job to get started!", fontFamily = Poppins, color = GrayText, fontSize = 12.sp)
                             }
                         }
                     }
@@ -506,7 +507,7 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = DarkCard),
-                            onClick = { navController.navigate(ROUTE_JOBS) }
+                            onClick = { bottomNavController?.navigate(ROUTE_JOBS) }
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp),
@@ -529,7 +530,7 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = DarkCard),
-                            onClick = { navController.navigate(ROUTE_ALERTS) }
+                            onClick = { bottomNavController?.navigate(ROUTE_ALERTS) }
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp),
@@ -552,7 +553,7 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = DarkCard),
-                            onClick = { navController.navigate(ROUTE_ALERTS) }
+                            onClick = { bottomNavController?.navigate(ROUTE_ALERTS) }
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp),

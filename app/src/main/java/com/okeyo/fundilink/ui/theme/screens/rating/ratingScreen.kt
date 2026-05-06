@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -100,8 +101,10 @@ fun RateFundiScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Text(text = "⭐", fontSize = 72.sp)
+
             Text(
-                text = "How was the job? ⭐",
+                text = "Rate the Fundi",
                 fontFamily = Poppins,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
@@ -109,13 +112,14 @@ fun RateFundiScreen(
             )
 
             Text(
-                text = "Rate the fundi's work",
+                text = "How was the job done?",
                 fontFamily = Poppins,
                 fontSize = 13.sp,
-                color = GrayText
+                color = GrayText,
+                textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -146,13 +150,12 @@ fun RateFundiScreen(
                 color = if (rating > 0) Gold else GrayText
             )
 
-
             OutlinedTextField(
                 value = comment,
                 onValueChange = { comment = it },
                 label = { Text("Write a review (optional)", fontFamily = Poppins) },
-                minLines = 4,
-                maxLines = 6,
+                minLines = 3,
+                maxLines = 5,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
@@ -172,6 +175,7 @@ fun RateFundiScreen(
                         errorMessage = "Please select a rating"
                     } else {
                         isLoading = true
+                        errorMessage = ""
                         val reviewId = reviewsRef.push().key ?: ""
                         val review = ReviewModel(
                             id = reviewId,
@@ -181,29 +185,17 @@ fun RateFundiScreen(
                             rating = rating.toFloat(),
                             comment = comment
                         )
+
                         reviewsRef.child(reviewId).setValue(review)
+                        usersRef.child(fundiId).child("rating")
+                            .setValue(rating.toFloat())
                             .addOnSuccessListener {
-                                // Update fundi rating average
-                                reviewsRef.orderByChild("fundiId").equalTo(fundiId)
-                                    .get()
-                                    .addOnSuccessListener { snapshot ->
-                                        val reviews = mutableListOf<ReviewModel>()
-                                        snapshot.children.forEach {
-                                            val r = it.getValue(ReviewModel::class.java)
-                                            if (r != null) reviews.add(r)
-                                        }
-                                        val avgRating = reviews.map { it.rating }.average().toFloat()
-                                        usersRef.child(fundiId).child("rating")
-                                            .setValue(avgRating)
-                                            .addOnSuccessListener {
-                                                isLoading = false
-                                                navController.popBackStack()
-                                            }
-                                    }
-                            }
-                            .addOnFailureListener { e ->
                                 isLoading = false
-                                errorMessage = e.message ?: "Failed to submit review"
+                                navController.popBackStack()
+                            }
+                            .addOnFailureListener {
+                                isLoading = false
+                                navController.popBackStack()
                             }
                     }
                 },
@@ -217,7 +209,7 @@ fun RateFundiScreen(
                     CircularProgressIndicator(color = White, modifier = Modifier.size(24.dp))
                 } else {
                     Text(
-                        text = "Submit Review",
+                        text = "Submit Review ⭐",
                         fontFamily = Poppins,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,

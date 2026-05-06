@@ -41,6 +41,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,7 +81,8 @@ import com.okeyo.fundilink.ui.theme.White
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel() ,
+    isDarkTheme: MutableState<Boolean> = mutableStateOf(true)
 ) {
     val context = LocalContext.current
     var currentUser by remember { mutableStateOf<UserModel?>(null) }
